@@ -41,6 +41,7 @@ typedef struct {
 	
 	int ligne;
 	int colonne;
+	char joueur; //J ou R
 
 } Coup;
 
@@ -75,21 +76,18 @@ Etat * etat_initial( void ) {
 
 void afficheJeu(Etat * etat) {
 
-	// TODO: à compléter
-
-	/* par exemple : */
 	int i,j;
 	printf("   |");
-	for ( j = 0; j < 3; j++) 
+	for ( j = 0; j < 7; j++)
 		printf(" %d |", j);
 	printf("\n");
 	printf("----------------");
 	printf("\n");
 	
-	for(i=0; i < 3; i++) {
+	for(i=0; i < 6; i++) {
 		printf(" %d |", i);
 		for ( j = 0; j < 3; j++) 
-			printf(" %c |", etat->plateau[i][j]);
+			printf(" %c |", etat->grille[i][j]);
 		printf("\n");
 		printf("----------------");
 		printf("\n");
@@ -97,16 +95,13 @@ void afficheJeu(Etat * etat) {
 }
 
 
-// Nouveau coup 
-// TODO: adapter la liste de paramètres au jeu
-Coup * nouveauCoup( int i, int j ) {
+// Nouveau coup
+Coup * nouveauCoup( int i, int j, char couleur) {
 	Coup * coup = (Coup *)malloc(sizeof(Coup));
-	
-	// TODO: à compléter avec la création d'un nouveau coup
-	
-	/* par exemple : */
+
 	coup->ligne = i;
 	coup->colonne = j;
+	coup->joueur = couleur;
 	
 	return coup;
 }
@@ -114,29 +109,24 @@ Coup * nouveauCoup( int i, int j ) {
 // Demander à l'humain quel coup jouer 
 Coup * demanderCoup () {
 
-	// TODO...
-
-	/* par exemple : */
 	int i,j;
 	printf("\n quelle ligne ? ") ;
 	scanf("%d",&i); 
 	printf(" quelle colonne ? ") ;
 	scanf("%d",&j); 
 	
-	return nouveauCoup(i,j);
+	return nouveauCoup(i,j, 'R');
 }
 
 // Modifier l'état en jouant un coup 
 // retourne 0 si le coup n'est pas possible
 int jouerCoup( Etat * etat, Coup * coup ) {
-
-	// TODO: à compléter
 	
 	/* par exemple : */
 	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' )
 		return 0;
 	else {
-		etat->plateau[coup->ligne][coup->colonne] = etat->joueur ? 'O' : 'X';
+		etat->plateau[coup->ligne][coup->colonne] = etat->joueur ? 0 : 1;
 		
 		// à l'autre joueur de jouer
 		etat->joueur = AUTRE_JOUEUR(etat->joueur); 	
@@ -152,20 +142,16 @@ Coup ** coups_possibles( Etat * etat ) {
 	Coup ** coups = (Coup **) malloc((1+LARGEUR_MAX) * sizeof(Coup *) );
 	
 	int k = 0;
-	
-	// TODO: à compléter
-	
-	/* par exemple */
+
 	int i,j;
-	for(i=0; i < 3; i++) {
-		for (j=0; j < 3; j++) {
-			if ( etat->plateau[i][j] == ' ' ) {
+	for(i=0; i < 6; i++) {
+		for (j=0; j < 7; j++) {
+			if ( etat->grille[i][j] == ' ' ) {
 				coups[k] = nouveauCoup(i,j); 
 				k++;
 			}
 		}
 	}
-	/* fin de l'exemple */
 	
 	coups[k] = NULL;
 
