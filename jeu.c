@@ -10,8 +10,11 @@
 #include <math.h>
 #include <time.h>
 
+#define S_COL 7
+#define S_LIN 6
+
 // Paramètres du jeu
-#define LARGEUR_MAX 9 		// nb max de fils pour un noeud (= nb max de coups possibles)
+#define LARGEUR_MAX S_COL 	// nb max de fils pour un noeud (= nb max de coups possibles)
 
 #define TEMPS 5		// temps de calcul pour un coup avec MCTS (en secondes)
 
@@ -23,40 +26,34 @@
 // Critères de fin de partie
 typedef enum {NON, MATCHNUL, ORDI_GAGNE, HUMAIN_GAGNE } FinDePartie;
 
-
-//DONE
 // Definition du type Etat (état/position du jeu)
 typedef struct EtatSt {
 
 	int joueur; // à qui de jouer ? 
-	// 6 lignes, 7 colonnes
-	char grille[6][7]; //J pour Jaune et R pour Rouge
-	
+
+	char plateau[S_LIN][S_COL];	
 
 } Etat;
 
-//DONE
 // Definition du type Coup
 typedef struct {
-	
-	int ligne;
+
 	int colonne;
-	char joueur; //J ou R
 
 } Coup;
 
-//DONE
 // Copier un état 
 Etat * copieEtat( Etat * src ) {
 	Etat * etat = (Etat *)malloc(sizeof(Etat));
 
 	etat->joueur = src->joueur;
-
-	int i,j;	
-	for (i=0; i< 6; i++)
-		for ( j=0; j<7; j++)
-			etat->grille[i][j] = src->grille[i][j];
 	
+	int l,c;	
+	for (l=0; l< S_LIN; l++)
+		for ( c=0; c<S_COL; c++)
+			etat->plateau[l][c] = src->plateau[l][c];
+	
+
 	
 	return etat;
 }
@@ -65,74 +62,75 @@ Etat * copieEtat( Etat * src ) {
 Etat * etat_initial( void ) {
 	Etat * etat = (Etat *)malloc(sizeof(Etat));
 	
-	int i,j;	
-	for (i=0; i< 6; i++)
-		for ( j=0; j<7; j++)
-			etat->grille[i][j] = ' ';
+	int l,c;	
+	for (l=0; l< S_LIN; l++)
+		for ( c=0; c<S_COL; c++)
+			etat->plateau[l][c] = ' ';
 	
 	return etat;
 }
 
 
 void afficheJeu(Etat * etat) {
-
-	int i,j;
-	printf("   |");
-	for ( j = 0; j < 7; j++)
-		printf(" %d |", j);
+	int l,c;
+	printf(" |");
+	for ( c = 0; c < S_COL; c++) 
+		printf("%d|", c);
 	printf("\n");
 	printf("----------------");
 	printf("\n");
 	
-	for(i=0; i < 6; i++) {
-		printf(" %d |", i);
-		for ( j = 0; j < 3; j++) 
-			printf(" %c |", etat->grille[i][j]);
-		printf("\n");
-		printf("----------------");
+	for(l=0; l < S_LIN; l++) {
+		printf("%d|", l);
+		for ( c = 0; c < S_COL; c++) 
+			printf("%c|", etat->plateau[l][c]);
 		printf("\n");
 	}
+	printf("----------------");
+	printf("\n");
+	fflush(stdout);
 }
 
 
-// Nouveau coup
-Coup * nouveauCoup( int i, int j, char couleur) {
+// Nouveau coup 
+Coup * nouveauCoup( int c ) {
 	Coup * coup = (Coup *)malloc(sizeof(Coup));
 
-	coup->ligne = i;
-	coup->colonne = j;
-	coup->joueur = couleur;
+	coup->colonne = c;
 	
 	return coup;
 }
 
 // Demander à l'humain quel coup jouer 
 Coup * demanderCoup () {
-
-	int i,j;
-	printf("\n quelle ligne ? ") ;
-	scanf("%d",&i); 
+	int c;
 	printf(" quelle colonne ? ") ;
-	scanf("%d",&j); 
+	scanf("%d",&c); 
 	
-	return nouveauCoup(i,j, 'R');
+	return nouveauCoup(c);
 }
 
 // Modifier l'état en jouant un coup 
 // retourne 0 si le coup n'est pas possible
 int jouerCoup( Etat * etat, Coup * coup ) {
-	
-	/* par exemple : */
-	if ( etat->grille[coup->ligne][coup->colonne] != ' ' )
-		return 0;
-	else {
-		etat->grille[coup->ligne][coup->colonne] = etat->joueur ? 0 : 1;
-		
-		// à l'autre joueur de jouer
-		etat->joueur = AUTRE_JOUEUR(etat->joueur); 	
 
-		return 1;
-	}	
+	int ligne;
+	int peux_jouer = 0;
+	for(ligne = S_LIN-1; ligne >= 0; ligne--){
+		if(etat->plateau[ligne][coup->colonne] == ' '){
+			peux_jouer++;
+			break;
+		}
+	}
+	if(!peux_jouer)
+		return 0;
+
+	etat->plateau[ligne][coup->colonne] = etat->joueur ? 'O' : 'X';
+	
+	// à l'autre joueur de jouer
+	etat->joueur = AUTRE_JOUEUR(etat->joueur); 	
+
+	return 1;
 }
 
 // Retourne une liste de coups possibles à partir d'un etat 
@@ -143,12 +141,13 @@ Coup ** coups_possibles( Etat * etat ) {
 	
 	int k = 0;
 
-	int i,j;
-	for(i=0; i < 6; i++) {
-		for (j=0; j < 7; j++) {
-			if ( etat->grille[i][j] == ' ' ) {
-				coups[k] = nouveauCoup(i,j,'R'); 
+	int l,c;
+	for (c=0; c < S_COL && k < LARGEUR_MAX; c++) {
+		for(l=S_LIN-1; l >= 0; l--){
+			if ( etat->plateau[l][c] == ' ' ) {
+				coups[k] = nouveauCoup(c); 
 				k++;
+				break;
 			}
 		}
 	}
@@ -232,50 +231,46 @@ void freeNoeud ( Noeud * noeud) {
 // Test si l'état est un état terminal 
 // et retourne NON, MATCHNUL, ORDI_GAGNE ou HUMAIN_GAGNE
 FinDePartie testFin( Etat * etat ) {
-
-	// TODO...
-	
-	/* par exemple	*/
 	
 	// tester si un joueur a gagné
-	int i,j,k,n = 0;
-	for ( i=0;i < 3; i++) {
-		for(j=0; j < 3; j++) {
-			if ( etat->grille[i][j] != ' ') {
+	int l,c,k,n = 0;
+	for ( l=0;l < S_LIN; l++) {
+		for(c=0; c < S_COL; c++) {
+			if ( etat->plateau[l][c] != ' ') {
 				n++;	// nb coups joués
 			
-				// lignes
+				//Colonne (la ligne change)
 				k=0;
-				while ( k < 3 && i+k < 3 && etat->grille[i+k][j] == etat->grille[i][j] ) 
+				while ( k < 4 && l+k < S_LIN && etat->plateau[l+k][c] == etat->plateau[l][c] ) 
 					k++;
-				if ( k == 3 ) 
-					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
+				if ( k == 4 ) 
+					return etat->plateau[l][c] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
-				// colonnes
+				//Ligne (la colonne change)
 				k=0;
-				while ( k < 3 && j+k < 3 && etat->grille[i][j+k] == etat->grille[i][j] ) 
+				while ( k < 4 && c+k < S_COL && etat->plateau[l][c+k] == etat->plateau[l][c] ) 
 					k++;
-				if ( k == 3 ) 
-					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
+				if ( k == 4 ) 
+					return etat->plateau[l][c] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
 				// diagonales
 				k=0;
-				while ( k < 3 && i+k < 3 && j+k < 3 && etat->grille[i+k][j+k] == etat->grille[i][j] ) 
+				while ( k < 4 && l+k < S_LIN && c+k < S_COL && etat->plateau[l+k][c+k] == etat->plateau[l][c] ) 
 					k++;
-				if ( k == 3 ) 
-					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
+				if ( k == 4 ) 
+					return etat->plateau[l][c] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
 				k=0;
-				while ( k < 3 && i+k < 3 && j-k >= 0 && etat->grille[i+k][j-k] == etat->grille[i][j] ) 
+				while ( k < 4 && l+k < S_LIN && c-k >= 0 && etat->plateau[l+k][c-k] == etat->plateau[l][c] ) 
 					k++;
-				if ( k == 3 ) 
-					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;		
+				if ( k == 4 ) 
+					return etat->plateau[l][c] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;		
 			}
 		}
 	}
 
 	// et sinon tester le match nul	
-	if ( n == 3*3 ) 
+	if ( n == S_LIN*S_COL ) 
 		return MATCHNUL;
 		
 	return NON;
