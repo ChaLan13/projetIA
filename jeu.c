@@ -123,10 +123,10 @@ Coup * demanderCoup () {
 int jouerCoup( Etat * etat, Coup * coup ) {
 	
 	/* par exemple : */
-	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' )
+	if ( etat->grille[coup->ligne][coup->colonne] != ' ' )
 		return 0;
 	else {
-		etat->plateau[coup->ligne][coup->colonne] = etat->joueur ? 0 : 1;
+		etat->grille[coup->ligne][coup->colonne] = etat->joueur ? 0 : 1;
 		
 		// à l'autre joueur de jouer
 		etat->joueur = AUTRE_JOUEUR(etat->joueur); 	
@@ -147,7 +147,7 @@ Coup ** coups_possibles( Etat * etat ) {
 	for(i=0; i < 6; i++) {
 		for (j=0; j < 7; j++) {
 			if ( etat->grille[i][j] == ' ' ) {
-				coups[k] = nouveauCoup(i,j); 
+				coups[k] = nouveauCoup(i,j,'R'); 
 				k++;
 			}
 		}
@@ -241,35 +241,35 @@ FinDePartie testFin( Etat * etat ) {
 	int i,j,k,n = 0;
 	for ( i=0;i < 3; i++) {
 		for(j=0; j < 3; j++) {
-			if ( etat->plateau[i][j] != ' ') {
+			if ( etat->grille[i][j] != ' ') {
 				n++;	// nb coups joués
 			
 				// lignes
 				k=0;
-				while ( k < 3 && i+k < 3 && etat->plateau[i+k][j] == etat->plateau[i][j] ) 
+				while ( k < 3 && i+k < 3 && etat->grille[i+k][j] == etat->grille[i][j] ) 
 					k++;
 				if ( k == 3 ) 
-					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
+					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
 				// colonnes
 				k=0;
-				while ( k < 3 && j+k < 3 && etat->plateau[i][j+k] == etat->plateau[i][j] ) 
+				while ( k < 3 && j+k < 3 && etat->grille[i][j+k] == etat->grille[i][j] ) 
 					k++;
 				if ( k == 3 ) 
-					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
+					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
 				// diagonales
 				k=0;
-				while ( k < 3 && i+k < 3 && j+k < 3 && etat->plateau[i+k][j+k] == etat->plateau[i][j] ) 
+				while ( k < 3 && i+k < 3 && j+k < 3 && etat->grille[i+k][j+k] == etat->grille[i][j] ) 
 					k++;
 				if ( k == 3 ) 
-					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
+					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
 				k=0;
-				while ( k < 3 && i+k < 3 && j-k >= 0 && etat->plateau[i+k][j-k] == etat->plateau[i][j] ) 
+				while ( k < 3 && i+k < 3 && j-k >= 0 && etat->grille[i+k][j-k] == etat->grille[i][j] ) 
 					k++;
 				if ( k == 3 ) 
-					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;		
+					return etat->grille[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;		
 			}
 		}
 	}
