@@ -142,13 +142,11 @@ Coup ** coups_possibles( Etat * etat ) {
 	int k = 0;
 
 	int l,c;
+	l = S_LIN-1;
 	for (c=0; c < S_COL && k < LARGEUR_MAX; c++) {
-		for(l=S_LIN-1; l >= 0; l--){
-			if ( etat->plateau[l][c] == ' ' ) {
-				coups[k] = nouveauCoup(c); 
-				k++;
-				break;
-			}
+		if(etat->plateau[S_LIN-1][c] == ' '){
+			coups[k] = nouveauCoup(c); 
+			k++;
 		}
 	}
 	
