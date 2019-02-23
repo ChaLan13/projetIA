@@ -23,6 +23,8 @@
 #define min(a, b)       ((a) < (b) ? (a) : (b))
 #define max(a, b)       ((a) < (b) ? (b) : (a))
 
+#define _c_ 5
+
 // Critères de fin de partie
 typedef enum {NON, MATCHNUL, ORDI_GAGNE, HUMAIN_GAGNE } FinDePartie;
 
@@ -304,10 +306,6 @@ FinDePartie testFin( Etat * etat ) {
 
 
 
-
-
-
-
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
 // en tempsmax secondes
 void ordijoue_mcts(Etat * etat, int tempsmax) {
@@ -328,10 +326,10 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	
 		//Tant qu'on a le temps et qu'on a pas fini d'explorer la branche choisie
 		Noeud * noeudActuel = racine;
-		FinDePartie actuel = testFin(noeudActuel->etat);
+		FinDePartie fin_de_partie = testFin(noeudActuel->etat);
 
 
-		while(actuel == NON){
+		while(fin_de_partie == NON){
 			if(noeudActuel->nb_enfants == 0){
 				Coup ** coup_possible = coups_possibles(noeudActuel->etat);
 				int nbCoup = 0;
@@ -342,41 +340,35 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 				}
 			}
 
-
-			/*if(noeudActuel->nb_enfants == 0) printf("errorrrrrr\n");
-			else printf("Nombre d'enfants du noeud : %d\n", noeudActuel->nb_enfants);
-				//A cette etape un etat aura forcement des fils sinon c'est une grille pleine donc egalite
-				//Donc considere comme une defaite par testFin
-			}*/
-
 			int i = 0; 
 			int max_i = 0;
+			double meilleur_B = 0;
 			for(; i < noeudActuel->nb_enfants; i++){
 				if(noeudActuel->enfants[i]->nb_simus == 0){
 					max_i = i;
 					break;
-
 				}
-				//Calcul de la Bvaleur de l'enfantAcuel[i]
-				//comparer à la bValeur de l'enfant[mx_i]
-				//(stoker dans une varialbe)
-				//recherche de max
+
+				Noeud* nenfant = noeudActuel->enfants[i];
+				double actual_B = nenfant->nb_victoires / nenfant->nb_simus + _c_ * sqrt( log2( noeudActuel->nb_simus) /nenfant->nb_simus);
+
+				if(actual_B > meilleur_B){
+					max_i = i;
+					meilleur_B = actual_B;
+				}
 			}
+			printf("%d\t", max_i );
 			noeudActuel = noeudActuel->enfants[max_i];
-			actuel = testFin(noeudActuel->etat);
+			noeudActuel->nb_simus++;
+			fin_de_partie = testFin(noeudActuel->etat);
 		}
 
-		//On est sur un noeud en fin de partie
-		//ON connait l'état de cette branche (actuelle) qui est soit ordi gagne, soit humain gagne, soit egalite
-		//L'ordi considerer une egalite comme une defaite
-		//On peut donc mettre à jour le nombre de victoire du noeudActuel, son nombreVictoire, et tout ce qui a un rapport avec
-		//Sa B-valeur
-		//Il faut ensuite changer les Bvaleurs de toute la branche visitée
 
-		
-		while(noeudActuel != NULL){
-			//mettre a jour les BValeurs 
-			noeudActuel = noeudActuel->parent;
+		if(fin_de_partie == ORDI_GAGNE){
+			while(noeudActuel != NULL){
+				noeudActuel->nb_victoires++;
+				noeudActuel = noeudActuel->parent;
+			}
 		}
 
 		toc = clock(); 
@@ -384,16 +376,28 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 		iter ++;
 	} while ( temps < tempsmax );
 
-	int i = 1;
-	int max_i = 0;
-	for (; i< racine->nb_enfants; i++){
-		if(racine->enfants[max_i] < racine->enfants[i])
-			max_i = i;
 
-			meilleur_coup = racine->enfants[max_i]->coup;
+	printf("#####################################\n");
+	printf("#####################################\n");
+	printf("#####################################\n");
+	printf("#####################################\n");
+	printf("#####################################\n");
+	int j = 1;
+	int meuilleur_j = 0;
+		printf("Enfant %d. Nombre de victoire: %d\n", 0, racine->enfants[0]->nb_victoires);
+	for (; j < racine->nb_enfants; j++){
+		printf("Enfant %d. Nombre de victoire: %d\n", j, racine->enfants[j]->nb_victoires);
+		if(racine->enfants[meuilleur_j]->nb_victoires < racine->enfants[j]->nb_victoires)
+			meuilleur_j = j;
 	}
+	printf("#####################################\n");
+	printf("#####################################\n");
+	printf("#####################################\n");
+	printf("#####################################\n");
+	printf("#####################################\n");
 
 	
+	meilleur_coup = racine->enfants[meuilleur_j]->coup;
 	/* fin de l'algorithme  */ 
 	
 	// Jouer le meilleur premier coup

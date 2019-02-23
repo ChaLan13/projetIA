@@ -1,4 +1,4 @@
 clear;clear;
-rm jeu;
-gcc -o jeu jeu.c -I.;
+gcc -o jeu jeu.c -I. -lm;
 ./jeu;
+rm jeu;
