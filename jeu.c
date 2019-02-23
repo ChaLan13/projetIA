@@ -399,6 +399,11 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 			meilleur_s_j = s;
 		}
 	}
+
+	s = racine->nb_simus; // normalement = à iter
+	v = racine->nb_victoires;
+	d = s-v;
+	printf("total:  Nb Simu: %5d\t\tNb Victoire: %5d\t\tNb defaite: %5d\n", j, s, v, d);
 	printf("#####################################\n");
 	printf("#####################################\n");
 
