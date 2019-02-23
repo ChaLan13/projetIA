@@ -16,7 +16,7 @@
 // Paramètres du jeu
 #define LARGEUR_MAX S_COL 	// nb max de fils pour un noeud (= nb max de coups possibles)
 
-#define TEMPS 5		// temps de calcul pour un coup avec MCTS (en secondes)
+#define TEMPS 10		// temps de calcul pour un coup avec MCTS (en secondes)
 
 // macros
 #define AUTRE_JOUEUR(i) (1-(i))
@@ -143,8 +143,7 @@ Coup ** coups_possibles( Etat * etat ) {
 	
 	int k = 0;
 
-	int l,c;
-	l = S_LIN-1;
+	int c;
 	for (c=0; c < S_COL && k < LARGEUR_MAX; c++) {
 		if(etat->plateau[0][c] == ' '){
 			coups[k] = nouveauCoup(c); 
@@ -342,7 +341,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 
 			int i = 0; 
 			int max_i = 0;
-			double meilleur_B = 0;
+			float meilleur_B = 0;
 			for(; i < noeudActuel->nb_enfants; i++){
 				if(noeudActuel->enfants[i]->nb_simus == 0){
 					max_i = i;
@@ -350,20 +349,28 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 				}
 
 				Noeud* nenfant = noeudActuel->enfants[i];
-				double actual_B = nenfant->nb_victoires / nenfant->nb_simus + _c_ * sqrt( log2( noeudActuel->nb_simus) /nenfant->nb_simus);
-
+				float actual_B = (float)nenfant->nb_victoires / (float)nenfant->nb_simus + _c_ * sqrt( log2( (float)noeudActuel->nb_simus) /(float)nenfant->nb_simus);
+				//printf("%f\t", actual_B);
 				if(actual_B > meilleur_B){
 					max_i = i;
 					meilleur_B = actual_B;
 				}
 			}
-			printf("%d\t", max_i );
+			/*
+			int dump;
+			if(meilleur_B > 0){
+				printf("Enter");
+				scanf("%d", &dump);
+			}
+			else
+				printf("\n");//*/
+			printf("%d", max_i);
 			noeudActuel = noeudActuel->enfants[max_i];
 			noeudActuel->nb_simus++;
 			fin_de_partie = testFin(noeudActuel->etat);
 		}
 
-
+		printf("\n");
 		if(fin_de_partie == ORDI_GAGNE){
 			while(noeudActuel != NULL){
 				noeudActuel->nb_victoires++;
@@ -377,7 +384,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	} while ( temps < tempsmax );
 
 
-	printf("#####################################\n");
+	printf("\n#####################################\n");
 	printf("#####################################\n");
 	printf("#####################################\n");
 	printf("#####################################\n");
