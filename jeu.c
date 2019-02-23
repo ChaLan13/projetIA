@@ -177,20 +177,48 @@ typedef struct NoeudSt {
 
 // Créer un nouveau noeud en jouant un coup à partir d'un parent 
 // utiliser nouveauNoeud(NULL, NULL) pour créer la racine
+Noeud * noeudRacine (Etat * etat) {
+	Noeud * noeud = (Noeud *)malloc(sizeof(Noeud));
+	
+	noeud->etat = copieEtat (etat);
+	noeud->coup = NULL;			
+	noeud->joueur = 1;		
+
+	
+	noeud->parent = NULL;
+	noeud->nb_enfants = 0; 
+	
+	// POUR MCTS:
+	noeud->nb_victoires = 0;
+	noeud->nb_simus = 0;	
+	
+
+	return noeud; 	
+}
+
+
+// Créer un nouveau noeud en jouant un coup à partir d'un parent 
+// utiliser nouveauNoeud(NULL, NULL) pour créer la racine
 Noeud * nouveauNoeud (Noeud * parent, Coup * coup ) {
 	Noeud * noeud = (Noeud *)malloc(sizeof(Noeud));
 	
-	if ( parent != NULL && coup != NULL ) {
-		noeud->etat = copieEtat ( parent->etat );
-		jouerCoup ( noeud->etat, coup );
-		noeud->coup = coup;			
-		noeud->joueur = AUTRE_JOUEUR(parent->joueur);		
+
+	//A aucun moment on aura besoin de creer un noeud sans parent ou sans coup 
+	// (exception creer racine) 
+	//Donc si on laisse la possibilite de creer un noeud sans parent ou sans coup 
+	// On ne fait que reporter le problème 
+	//Arreter ici le programme simplifiera le débuggage
+	if(parent == NULL || coup == NULL){
+		printf("\nCreer noeud avec un parent ou un coup null\n");
+		exit(1);
 	}
-	else {
-		noeud->etat = NULL;
-		noeud->coup = NULL;
-		noeud->joueur = 0; 
-	}
+
+	noeud->etat = copieEtat ( parent->etat );
+	jouerCoup ( noeud->etat, coup );
+	noeud->coup = coup;			
+	noeud->joueur = AUTRE_JOUEUR(parent->joueur);		
+
+	
 	noeud->parent = parent; 
 	noeud->nb_enfants = 0; 
 	
@@ -276,52 +304,113 @@ FinDePartie testFin( Etat * etat ) {
 
 
 
+
+
+
+
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
 // en tempsmax secondes
 void ordijoue_mcts(Etat * etat, int tempsmax) {
+
 
 	clock_t tic, toc;
 	tic = clock();
 	int temps;
 
-	Coup ** coups;
 	Coup * meilleur_coup ;
 	
 	// Créer l'arbre de recherche
-	Noeud * racine = nouveauNoeud(NULL, NULL);	
-	racine->etat = copieEtat(etat); 
-	
-	// créer les premiers noeuds:
-	coups = coups_possibles(racine->etat); 
-	int k = 0;
-	Noeud * enfant;
-	while ( coups[k] != NULL) {
-		enfant = ajouterEnfant(racine, coups[k]);
-		k++;
-	}
-	
-	
-	meilleur_coup = coups[ rand()%k ]; // choix aléatoire
-	
-	/*  TODO :
-		- supprimer la sélection aléatoire du meilleur coup ci-dessus
-		- implémenter l'algorithme MCTS-UCT pour déterminer le meilleur coup ci-dessous
-
+	Noeud * racine = noeudRacine(etat);	
 	int iter = 0;
 	
 	do {
 	
 	
-	
-		// à compléter par l'algorithme MCTS-UCT... 
-	
-	
-	
-	
+		//Tant qu'on a le temps et qu'on a pas fini d'explorer la branche choisie
+		Noeud * noeudActuel = racine;
+		FinDePartie actuel = testFin(noeudActuel->etat);
+
+
+		while(actuel == NON){
+
+			if(noeudActuel->nb_enfants == 0){
+				Coup ** coup_possible = coups_possibles(noeudActuel->etat);
+				int nbCoup = 0;
+				while(coup_possible[nbCoup] != NULL){
+					Coup* _fils = coup_possible[nbCoup];
+					ajouterEnfant(noeudActuel, _fils);
+					nbCoup++;
+				}
+			}
+
+
+			/*if(noeudActuel->nb_enfants == 0) printf("errorrrrrr\n");
+			else printf("Nombre d'enfants du noeud : %d\n", noeudActuel->nb_enfants);
+				//A cette etape un etat aura forcement des fils sinon c'est une grille pleine donc egalite
+				//Donc considere comme une defaite par testFin
+			}*/
+
+			int i = 0; 
+			int max_i = 0;
+			for(; i < noeudActuel->nb_enfants; i++){
+				printf("Entree dans la boucle\n");
+				if(noeudActuel->enfants[i]->nb_simus == 0){
+					printf("Le nb simu est 0, i : %d\n", i);
+					//Dans le cas ou le fils n'a pas ete explore 
+					noeudActuel = noeudActuel->enfants[i];
+					Coup ** coup_possible = coups_possibles(noeudActuel->etat);
+					int nbCoup = 0;
+					while(coup_possible[nbCoup] != NULL){
+						Coup* _fils = coup_possible[nbCoup];
+						ajouterEnfant(noeudActuel, _fils);
+						nbCoup++;
+					}
+					printf("Nombre d'enfants du noeud actuel : %d\n", noeudActuel->nb_enfants);
+					max_i = i;
+					break;
+
+				}
+				//Calcul de la Bvaleur de l'enfantAcuel[i]
+				//comparer à la bValeur de l'enfant[mx_i]
+				//(stoker dans une varialbe)
+				//recherche de max
+			}
+			noeudActuel = noeudActuel->enfants[max_i];
+			if (noeudActuel == NULL) printf("Error noeud est null\n");
+			FinDePartie actuel = testFin(noeudActuel->etat);
+			printf("Recursion\n");
+		}
+
+		//On est sur un noeud en fin de partie
+		//ON connait l'état de cette branche (actuelle) qui est soit ordi gagne, soit humain gagne, soit egalite
+		//L'ordi considerer une egalite comme une defaite
+		//On peut donc mettre à jour le nombre de victoire du noeudActuel, son nombreVictoire, et tout ce qui a un rapport avec
+		//Sa B-valeur
+		//Il faut ensuite changer les Bvaleurs de toute la branche visitée
+
+
+		noeudActuel = noeudActuel->parent;
+		while(noeudActuel != NULL){
+			//mettre a jour les BValeurs 
+			noeudActuel = noeudActuel->parent;
+		}
+
 		toc = clock(); 
 		temps = (int)( ((double) (toc - tic)) / CLOCKS_PER_SEC );
 		iter ++;
 	} while ( temps < tempsmax );
+
+	printf("Choix du fils\n");
+	int i = 1;
+	int max_i = 0;
+	for (; i< racine->nb_enfants; i++){
+		if(racine->enfants[max_i] < racine->enfants[i])
+			max_i = i;
+
+			meilleur_coup = racine->enfants[max_i]->coup;
+	}
+
+	printf("Fils choisi\n");
 	
 	/* fin de l'algorithme  */ 
 	
@@ -330,7 +419,6 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	
 	// Penser à libérer la mémoire :
 	freeNoeud(racine);
-	free (coups);
 }
 
 int main(void) {
