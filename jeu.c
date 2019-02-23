@@ -16,14 +16,14 @@
 // Paramètres du jeu
 #define LARGEUR_MAX S_COL 	// nb max de fils pour un noeud (= nb max de coups possibles)
 
-#define TEMPS 10		// temps de calcul pour un coup avec MCTS (en secondes)
+#define TEMPS 5		// temps de calcul pour un coup avec MCTS (en secondes)
 
 // macros
 #define AUTRE_JOUEUR(i) (1-(i))
 #define min(a, b)       ((a) < (b) ? (a) : (b))
 #define max(a, b)       ((a) < (b) ? (b) : (a))
 
-#define _c_ 5
+#define _c_ 1
 
 // Critères de fin de partie
 typedef enum {NON, MATCHNUL, ORDI_GAGNE, HUMAIN_GAGNE } FinDePartie;
@@ -308,8 +308,6 @@ FinDePartie testFin( Etat * etat ) {
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
 // en tempsmax secondes
 void ordijoue_mcts(Etat * etat, int tempsmax) {
-
-
 	clock_t tic, toc;
 	tic = clock();
 	int temps;
@@ -329,6 +327,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 
 
 		while(fin_de_partie == NON){
+			noeudActuel->nb_simus++;
 			if(noeudActuel->nb_enfants == 0){
 				Coup ** coup_possible = coups_possibles(noeudActuel->etat);
 				int nbCoup = 0;
@@ -341,7 +340,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 
 			int i = 0; 
 			int max_i = 0;
-			float meilleur_B = 0;
+			float meilleur_B = -500;
 			for(; i < noeudActuel->nb_enfants; i++){
 				if(noeudActuel->enfants[i]->nb_simus == 0){
 					max_i = i;
@@ -349,28 +348,26 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 				}
 
 				Noeud* nenfant = noeudActuel->enfants[i];
-				float actual_B = (float)nenfant->nb_victoires / (float)nenfant->nb_simus + _c_ * sqrt( log2( (float)noeudActuel->nb_simus) /(float)nenfant->nb_simus);
-				//printf("%f\t", actual_B);
+
+				float mu = (float)nenfant->nb_victoires / (float)nenfant->nb_simus;
+				
+				if(noeudActuel->joueur == 0) //humain
+					mu = -mu;
+				
+				float racine_bizarre = ((float)noeudActuel->nb_simus / (float)nenfant->nb_simus);
+				
+				float actual_B = mu + _c_ *  racine_bizarre;
+				
 				if(actual_B > meilleur_B){
 					max_i = i;
 					meilleur_B = actual_B;
 				}
 			}
-			/*
-			int dump;
-			if(meilleur_B > 0){
-				printf("Enter");
-				scanf("%d", &dump);
-			}
-			else
-				printf("\n");//*/
-			printf("%d", max_i);
+			
 			noeudActuel = noeudActuel->enfants[max_i];
-			noeudActuel->nb_simus++;
 			fin_de_partie = testFin(noeudActuel->etat);
 		}
 
-		printf("\n");
 		if(fin_de_partie == ORDI_GAGNE){
 			while(noeudActuel != NULL){
 				noeudActuel->nb_victoires++;
@@ -386,20 +383,22 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 
 	printf("\n#####################################\n");
 	printf("#####################################\n");
-	printf("#####################################\n");
-	printf("#####################################\n");
-	printf("#####################################\n");
-	int j = 1;
+
+	int j = 0;
 	int meuilleur_j = 0;
-		printf("Enfant %d. Nombre de victoire: %d\n", 0, racine->enfants[0]->nb_victoires);
+	int s,v,d;
+	int meilleur_s_j = 0;
+	printf("Nb simu: %d\n", iter);
 	for (; j < racine->nb_enfants; j++){
-		printf("Enfant %d. Nombre de victoire: %d\n", j, racine->enfants[j]->nb_victoires);
-		if(racine->enfants[meuilleur_j]->nb_victoires < racine->enfants[j]->nb_victoires)
+		s = racine->enfants[j]->nb_simus;
+		v = racine->enfants[j]->nb_victoires;
+		d = s-v;
+		printf("Enfant %5d. Nb Simu: %5d\t\tNb Victoire: %5d\t\tNb defaite: %5d\n", j, s, v, d);
+		if(meilleur_s_j < s){
 			meuilleur_j = j;
+			meilleur_s_j = s;
+		}
 	}
-	printf("#####################################\n");
-	printf("#####################################\n");
-	printf("#####################################\n");
 	printf("#####################################\n");
 	printf("#####################################\n");
 
