@@ -144,7 +144,7 @@ Coup ** coups_possibles( Etat * etat ) {
 	int l,c;
 	l = S_LIN-1;
 	for (c=0; c < S_COL && k < LARGEUR_MAX; c++) {
-		if(etat->plateau[S_LIN-1][c] == ' '){
+		if(etat->plateau[0][c] == ' '){
 			coups[k] = nouveauCoup(c); 
 			k++;
 		}
@@ -332,7 +332,6 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 
 
 		while(actuel == NON){
-
 			if(noeudActuel->nb_enfants == 0){
 				Coup ** coup_possible = coups_possibles(noeudActuel->etat);
 				int nbCoup = 0;
@@ -364,7 +363,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 				//recherche de max
 			}
 			noeudActuel = noeudActuel->enfants[max_i];
-			FinDePartie actuel = testFin(noeudActuel->etat);
+			actuel = testFin(noeudActuel->etat);
 		}
 
 		//On est sur un noeud en fin de partie
@@ -374,8 +373,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 		//Sa B-valeur
 		//Il faut ensuite changer les Bvaleurs de toute la branche visitée
 
-
-		noeudActuel = noeudActuel->parent;
+		
 		while(noeudActuel != NULL){
 			//mettre a jour les BValeurs 
 			noeudActuel = noeudActuel->parent;
