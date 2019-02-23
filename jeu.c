@@ -353,19 +353,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 			int i = 0; 
 			int max_i = 0;
 			for(; i < noeudActuel->nb_enfants; i++){
-				printf("Entree dans la boucle\n");
 				if(noeudActuel->enfants[i]->nb_simus == 0){
-					printf("Le nb simu est 0, i : %d\n", i);
-					//Dans le cas ou le fils n'a pas ete explore 
-					noeudActuel = noeudActuel->enfants[i];
-					Coup ** coup_possible = coups_possibles(noeudActuel->etat);
-					int nbCoup = 0;
-					while(coup_possible[nbCoup] != NULL){
-						Coup* _fils = coup_possible[nbCoup];
-						ajouterEnfant(noeudActuel, _fils);
-						nbCoup++;
-					}
-					printf("Nombre d'enfants du noeud actuel : %d\n", noeudActuel->nb_enfants);
 					max_i = i;
 					break;
 
@@ -376,9 +364,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 				//recherche de max
 			}
 			noeudActuel = noeudActuel->enfants[max_i];
-			if (noeudActuel == NULL) printf("Error noeud est null\n");
 			FinDePartie actuel = testFin(noeudActuel->etat);
-			printf("Recursion\n");
 		}
 
 		//On est sur un noeud en fin de partie
@@ -400,7 +386,6 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 		iter ++;
 	} while ( temps < tempsmax );
 
-	printf("Choix du fils\n");
 	int i = 1;
 	int max_i = 0;
 	for (; i< racine->nb_enfants; i++){
@@ -410,7 +395,6 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 			meilleur_coup = racine->enfants[max_i]->coup;
 	}
 
-	printf("Fils choisi\n");
 	
 	/* fin de l'algorithme  */ 
 	
