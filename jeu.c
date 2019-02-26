@@ -16,14 +16,14 @@
 // Paramètres du jeu
 #define LARGEUR_MAX S_COL 	// nb max de fils pour un noeud (= nb max de coups possibles)
 
-#define TEMPS 5		// temps de calcul pour un coup avec MCTS (en secondes)
+#define TEMPS 10		// temps de calcul pour un coup avec MCTS (en secondes)
 
 // macros
 #define AUTRE_JOUEUR(i) (1-(i))
 #define min(a, b)       ((a) < (b) ? (a) : (b))
 #define max(a, b)       ((a) < (b) ? (b) : (a))
 
-#define _c_ 1
+#define _c_ 0.3
 
 // Critères de fin de partie
 typedef enum {NON, MATCHNUL, ORDI_GAGNE, HUMAIN_GAGNE } FinDePartie;
