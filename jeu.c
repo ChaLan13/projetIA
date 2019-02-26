@@ -404,6 +404,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	v = racine->nb_victoires;
 	d = s-v;
 	printf("total:  Nb Simu: %5d\t\tNb Victoire: %5d\t\tNb defaite: %5d\n", j, s, v, d);
+	printf("Probabilite pour l'ordinateur de gagner : %f\n", v/s);
 	printf("#####################################\n");
 	printf("#####################################\n");
 
