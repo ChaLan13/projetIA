@@ -354,7 +354,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 				if(noeudActuel->joueur == 0) //humain
 					mu = -mu;
 				
-				float racine_bizarre = ((float)noeudActuel->nb_simus / (float)nenfant->nb_simus);
+				float racine_bizarre = sqrt((float)log2(noeudActuel->nb_simus) / (float)nenfant->nb_simus);
 				
 				float actual_B = mu + _c_ *  racine_bizarre;
 				
@@ -387,13 +387,16 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	int j = 0;
 	int meuilleur_j = 0;
 	int s,v,d;
+	double proba;
 	int meilleur_s_j = 0;
 	printf("Nb simu: %d\n", iter);
 	for (; j < racine->nb_enfants; j++){
 		s = racine->enfants[j]->nb_simus;
 		v = racine->enfants[j]->nb_victoires;
 		d = s-v;
+		proba = (double)v/s;
 		printf("Enfant %5d. Nb Simu: %5d\t\tNb Victoire: %5d\t\tNb defaite: %5d\n", j, s, v, d);
+		printf("Probabilite pour l'ordinateur de gagner : %f\n", proba);
 		if(meilleur_s_j < s){
 			meuilleur_j = j;
 			meilleur_s_j = s;
@@ -404,7 +407,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	v = racine->nb_victoires;
 	d = s-v;
 	printf("total:  Nb Simu: %5d\t\tNb Victoire: %5d\t\tNb defaite: %5d\n", j, s, v, d);
-	printf("Probabilite pour l'ordinateur de gagner : %f\n", v/s);
+	
 	printf("#####################################\n");
 	printf("#####################################\n");
 
